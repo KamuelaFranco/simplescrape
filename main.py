@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import html.parser
+import os
 import os.path
 import urllib.parse
 import urllib.request
@@ -41,18 +42,22 @@ def html_parser(incoming_tag, html, HTMLParser=html.parser.HTMLParser):
     return a_parser.read(html)
 
 
-def get_local_path_from_url(url, urlparse=urllib.parse.urlparse):
-    return urlparse(url).path.strip("/").prepend(".")
+def get_local_path_from_full_url(url, local_directory, hostname, urlparse=urllib.parse.urlparse):
+    parsed_url = urlparse(url)
+    if parsed_url.hostname != hostname:
+        local_path = f"{local_directory}/cached_external_assets/{parsed_url.path.strip('/')}"
+    else:
+        local_path = local_directory + parsed_url.path.strip("/")
+    return local_path
 
 
-# TODO: Implement
 def get_full_url_from_relative_path(relative_path, incoming_url, urlparse=urllib.parse.urlparse):
     url = urlparse(relative_path)
     hostname_url = urlparse(incoming_url)
-    full_url = ""
     if not url.hostname or not url.scheme:
         full_url = f"http://{hostname_url.hostname}{url.path}"
-    return full_url
+        return full_url
+    return incoming_url
 
 
 def does_file_exist(path, isfile=os.path.isfile):
@@ -62,6 +67,7 @@ def does_file_exist(path, isfile=os.path.isfile):
 def download_new_file(url, local_path, urlretrieve=urllib.request.urlretrieve):
     if does_file_exist(local_path):
         return
+    os.makedirs(os.path.dirname(local_path), exist_ok=True)
     urlretrieve(url, local_path)
 
 
@@ -80,13 +86,16 @@ def get_asset_paths(html):
     return assets
 
 
-def main(url):
+def main(url, urlparse=urllib.parse.urlparse):
     print(f"Downloading {url}")
-    # print(does_file_exist("asdf/whatever.txt")) # this format works!
+    root_hostname = urlparse(url).hostname
     html = get_html(url)
     asset_paths = get_asset_paths(html)
     links_paths = get_path_links(html)
-    get_full_url_from_relative_path(asset_paths[0], url)
+    for asset_path in asset_paths:
+        full_url = get_full_url_from_relative_path(asset_path, url)
+        local_path = get_local_path_from_full_url(full_url, "site/", hostname=root_hostname)
+        download_new_file(full_url, local_path)
 
 
 if __name__ == "__main__":
