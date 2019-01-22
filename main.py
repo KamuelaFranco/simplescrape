@@ -10,9 +10,7 @@ def html_parser(incoming_tag, html, HTMLParser=html.parser.HTMLParser):
     class MyHTMLParser(HTMLParser):
         def __init__(self):
             super().__init__()
-            # self.reset()
             self._lines = []
-            self._test_lines = []
 
         def handle_starttag(self, tag, attrs):
             if tag == incoming_tag:
