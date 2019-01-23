@@ -117,6 +117,9 @@ def main(url, urlparse=urllib.parse.urlparse):
         except urllib.error.URLError:
             print("Failed")
             print(asset_path, local_path)
+        except:
+            print("Failed")
+            print(asset_path, local_path)
     # for link_path in link_paths:
     #     # print(link_path)
 
