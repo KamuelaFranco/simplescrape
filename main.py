@@ -51,13 +51,15 @@ def get_local_path_from_full_url(url, local_directory, hostname, urlparse=urllib
     return local_path
 
 
-def get_full_url_from_relative_path(relative_path, incoming_url, urlparse=urllib.parse.urlparse):
+def get_full_url_from_relative_path(relative_path, hostname, urlparse=urllib.parse.urlparse):
     url = urlparse(relative_path)
-    hostname_url = urlparse(incoming_url)
-    if not url.hostname or not url.scheme:
-        full_url = f"http://{hostname_url.hostname}{url.path}"
+    if not url.hostname:
+        full_url = f"http://{hostname}{url.path}"
         return full_url
-    return incoming_url
+    if not url.scheme:
+        full_url = f"http://{relative_path}"
+        return full_url
+    return relative_path
 
 
 def does_file_exist(path, isfile=os.path.isfile):
@@ -93,7 +95,7 @@ def main(url, urlparse=urllib.parse.urlparse):
     asset_paths = get_asset_paths(html)
     links_paths = get_path_links(html)
     for asset_path in asset_paths:
-        full_url = get_full_url_from_relative_path(asset_path, url)
+        full_url = get_full_url_from_relative_path(asset_path, hostname=root_hostname)
         local_path = get_local_path_from_full_url(full_url, "site/", hostname=root_hostname)
         download_new_file(full_url, local_path)
 
