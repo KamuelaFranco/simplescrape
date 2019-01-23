@@ -94,7 +94,7 @@ def get_asset_paths(html):
     return assets
 
 
-def main(url, urlparse=urllib.parse.urlparse):
+def main(url, links=[], urlparse=urllib.parse.urlparse):
     print(f"Downloading {url}")
     parsed_url = urlparse(url)
     root_hostname = parsed_url.hostname
@@ -104,10 +104,10 @@ def main(url, urlparse=urllib.parse.urlparse):
         with open("site/index.html", "w") as f:
             f.write(html)
             f.close()
-    asset_paths = map(
+    asset_paths = list(set(map(
         lambda path: get_full_url_from_relative_path(path, root_hostname),
-        get_asset_paths(html))
-    for asset_path in list(set(asset_paths)):
+        get_asset_paths(html))))
+    for asset_path in asset_paths:
         local_path = get_local_path_from_full_url(asset_path, "site/", hostname=root_hostname)
         try:
             download_new_file(asset_path, local_path)
@@ -117,13 +117,10 @@ def main(url, urlparse=urllib.parse.urlparse):
         except:
             print("Failed")
             print(asset_path, local_path)
-    link_paths = map(
+    link_paths = list(set(map(
         lambda path: get_full_url_from_relative_path(path, root_hostname),
-        get_path_links(html))
-    for link_path in list(set(link_paths)):
-        if link_path == url:
-            break
-        main(link_path)
+        get_path_links(html))))
+    print(link_paths)
 
 
 if __name__ == "__main__":
