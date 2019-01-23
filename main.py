@@ -107,9 +107,6 @@ def main(url, urlparse=urllib.parse.urlparse):
     asset_paths = map(
         lambda path: get_full_url_from_relative_path(path, root_hostname),
         get_asset_paths(html))
-    link_paths = map(
-        lambda path: get_full_url_from_relative_path(path, root_hostname),
-        get_path_links(html))
     for asset_path in asset_paths:
         local_path = get_local_path_from_full_url(asset_path, "site/", hostname=root_hostname)
         try:
@@ -120,8 +117,11 @@ def main(url, urlparse=urllib.parse.urlparse):
         except:
             print("Failed")
             print(asset_path, local_path)
-    # for link_path in link_paths:
-    #     # print(link_path)
+    link_paths = map(
+        lambda path: get_full_url_from_relative_path(path, root_hostname),
+        get_path_links(html))
+    for link_path in link_paths:
+        main(link_path)
 
 
 if __name__ == "__main__":
