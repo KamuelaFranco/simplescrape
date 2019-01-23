@@ -3,6 +3,7 @@ import argparse
 import html.parser
 import os
 import os.path
+import urllib.error
 import urllib.parse
 import urllib.request
 
@@ -49,7 +50,7 @@ def html_parser(incoming_tag, html, HTMLParser=html.parser.HTMLParser):
 def get_local_path_from_full_url(url, local_directory, hostname, urlparse=urllib.parse.urlparse):
     parsed_url = urlparse(url)
     if parsed_url.hostname != hostname:
-        local_path = f"{local_directory}/cached_external_assets/{parsed_url.path.strip('/')}"
+        local_path = f"{local_directory}cached_external_assets/{parsed_url.path.strip('/')}"
     else:
         local_path = local_directory + parsed_url.path.strip("/")
     return local_path
@@ -58,7 +59,7 @@ def get_local_path_from_full_url(url, local_directory, hostname, urlparse=urllib
 def get_full_url_from_relative_path(relative_path, hostname, urlparse=urllib.parse.urlparse):
     url = urlparse(relative_path)
     if not url.hostname:
-        full_url = f"http://{hostname}{url.path}"
+        full_url = f"http://{hostname}/{url.path}"
         return full_url
     if not url.scheme:
         full_url = f"http:{relative_path}"
@@ -111,7 +112,11 @@ def main(url, urlparse=urllib.parse.urlparse):
         get_path_links(html))
     for asset_path in asset_paths:
         local_path = get_local_path_from_full_url(asset_path, "site/", hostname=root_hostname)
-        download_new_file(asset_path, local_path)
+        try:
+            download_new_file(asset_path, local_path)
+        except urllib.error.URLError:
+            print("Failed")
+            print(asset_path, local_path)
     # for link_path in link_paths:
     #     # print(link_path)
 
