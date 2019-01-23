@@ -17,11 +17,11 @@ def html_parser(incoming_tag, html, HTMLParser=html.parser.HTMLParser):
             if tag == incoming_tag:
                 if tag == "a":
                     attrs_dict = dict(attrs)
-                    if attrs_dict["href"]:
+                    if attrs_dict.get("href"):
                         self._lines.append(attrs_dict["href"])
                 elif tag == "link":
                     attrs_dict = dict(attrs)
-                    if attrs_dict["href"] and (
+                    if attrs_dict.get("href") and (
                             attrs_dict.get("rel") == "stylesheet"
                             or attrs_dict.get("rel") == "shortcut icon"
                             or attrs_dict.get("rel") == "icon"
@@ -30,9 +30,13 @@ def html_parser(incoming_tag, html, HTMLParser=html.parser.HTMLParser):
                     ):
                         self._lines.append(attrs_dict["href"])
                 elif tag == "script":
-                    for attr in attrs:
-                        if attr[0] == "src":
-                            self._lines.append(attr[1])
+                    attrs_dict = dict(attrs)
+                    if attrs_dict.get("src"):
+                        self._lines.append(attrs_dict["src"])
+                elif tag == "img":
+                    attrs_dict = dict(attrs)
+                    if attrs_dict.get("src"):
+                        self._lines.append(attrs_dict["src"])
 
         def read(self, data):
             self.feed(data)
@@ -84,20 +88,32 @@ def get_path_links(html):
 def get_asset_paths(html):
     stylesheets = html_parser("link", html)
     scripts = html_parser("script", html)
-    assets = stylesheets + scripts
+    images = html_parser("img", html)
+    assets = stylesheets + scripts + images
     return assets
 
 
 def main(url, urlparse=urllib.parse.urlparse):
     print(f"Downloading {url}")
-    root_hostname = urlparse(url).hostname
+    parsed_url = urlparse(url)
+    root_hostname = parsed_url.hostname
     html = get_html(url)
-    asset_paths = get_asset_paths(html)
-    links_paths = get_path_links(html)
+    if not parsed_url.path.endswith(".html"):
+        os.makedirs(os.path.dirname("site/"), exist_ok=True)
+        with open("site/index.html", "w") as f:
+            f.write(html)
+            f.close()
+    asset_paths = map(
+        lambda path: get_full_url_from_relative_path(path, root_hostname),
+        get_asset_paths(html))
+    link_paths = map(
+        lambda path: get_full_url_from_relative_path(path, root_hostname),
+        get_path_links(html))
     for asset_path in asset_paths:
-        full_url = get_full_url_from_relative_path(asset_path, hostname=root_hostname)
-        local_path = get_local_path_from_full_url(full_url, "site/", hostname=root_hostname)
-        download_new_file(full_url, local_path)
+        local_path = get_local_path_from_full_url(asset_path, "site/", hostname=root_hostname)
+        download_new_file(asset_path, local_path)
+    # for link_path in link_paths:
+    #     # print(link_path)
 
 
 if __name__ == "__main__":
