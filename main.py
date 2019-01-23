@@ -83,7 +83,8 @@ def get_html(url, urlopen=urllib.request.urlopen):
 
 
 def get_path_links(html):
-    return html_parser("a", html)
+    all_links = html_parser("a", html)
+    return all_links
 
 
 def get_asset_paths(html):
