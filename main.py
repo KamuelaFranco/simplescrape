@@ -107,7 +107,7 @@ def main(url, urlparse=urllib.parse.urlparse):
     asset_paths = map(
         lambda path: get_full_url_from_relative_path(path, root_hostname),
         get_asset_paths(html))
-    for asset_path in asset_paths:
+    for asset_path in list(set(asset_paths)):
         local_path = get_local_path_from_full_url(asset_path, "site/", hostname=root_hostname)
         try:
             download_new_file(asset_path, local_path)
@@ -120,7 +120,9 @@ def main(url, urlparse=urllib.parse.urlparse):
     link_paths = map(
         lambda path: get_full_url_from_relative_path(path, root_hostname),
         get_path_links(html))
-    for link_path in link_paths:
+    for link_path in list(set(link_paths)):
+        if link_path == url:
+            break
         main(link_path)
 
 
