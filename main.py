@@ -118,7 +118,7 @@ def main(url, subdirectory="site/", root_hostname="", links=[], downloaded_links
         downloaded_links.append(url)
     else:
         os.makedirs(os.path.dirname(subdirectory), exist_ok=True)
-        with open(f"{subdirectory}{parsed_url.path}", "w") as f:
+        with open(f"{subdirectory.strip('/')}", "w") as f:
             f.write(html)
             f.close()
         downloaded_links.append(url)
