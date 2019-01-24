@@ -131,9 +131,8 @@ def main(url, subdirectory="site/", root_hostname="", links=[], downloaded_links
             pass
     local_link_paths = get_path_links(html, root_hostname)
     links += local_link_paths
-    for link in local_link_paths:
-        remaining_links = [a_link for a_link in links if a_link not in downloaded_links]
-        # remaining_links = links
+    remaining_links = [a_link for a_link in links if a_link not in downloaded_links]
+    for link in remaining_links:
         next_subdirectory = get_local_path_from_full_url(link, subdirectory, hostname=root_hostname)
         main(link, subdirectory=next_subdirectory, root_hostname=root_hostname, links=remaining_links,
              downloaded_links=downloaded_links)
