@@ -124,13 +124,11 @@ def main(url, subdirectory="site/", root_hostname="", links=[], downloaded_links
         try:
             download_new_file(asset_path, local_path)
         except urllib.error.URLError:
-            # print("Connection attempt failed while trying to download:")
-            # print(f"\t{asset_path} TO {local_path}")
-            pass
+            print("Connection attempt failed while trying to download:")
+            print(f"\t{asset_path} TO {local_path}")
         except:
-            # print("An unknown failure occurred while trying to download:")
-            # print(f"\t{asset_path} TO {local_path}")
-            pass
+            print("An unknown failure occurred while trying to download:")
+            print(f"\t{asset_path} TO {local_path}")
     local_link_paths = get_path_links(html, root_hostname)
     links += local_link_paths
     remaining_links = [a_link for a_link in links if a_link not in downloaded_links]
@@ -142,6 +140,6 @@ def main(url, subdirectory="site/", root_hostname="", links=[], downloaded_links
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("url", help="root of the site you want to download (usually the index.html)")
+    parser.add_argument("url", help="root of the site you want to download")
     args = parser.parse_args()
     main(args.url)
