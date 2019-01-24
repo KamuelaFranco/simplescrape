@@ -49,6 +49,8 @@ def html_parser(incoming_tag, html, HTMLParser=html.parser.HTMLParser):
 
 def get_local_path_from_full_url(url, local_directory, hostname, urlparse=urllib.parse.urlparse):
     parsed_url = urlparse(url)
+    if not local_directory.endswith("/"):
+        local_directory += "/"
     if parsed_url.hostname != hostname:
         local_path = f"{local_directory}cached_external_assets/{parsed_url.path.strip('/')}"
     else:
@@ -120,15 +122,20 @@ def main(url, subdirectory="site/", root_hostname="", links=[], downloaded_links
         try:
             download_new_file(asset_path, local_path)
         except urllib.error.URLError:
-            print("Connection attempt failed while trying to download:")
-            print(f"\t{asset_path} TO {local_path}")
+            # print("Connection attempt failed while trying to download:")
+            # print(f"\t{asset_path} TO {local_path}")
+            pass
         except:
-            print("An unknown failure occurred while trying to download:")
-            print(f"\t{asset_path} TO {local_path}")
+            # print("An unknown failure occurred while trying to download:")
+            # print(f"\t{asset_path} TO {local_path}")
+            pass
     local_link_paths = get_path_links(html, root_hostname)
+    links += local_link_paths
     for link in local_link_paths:
+        remaining_links = [a_link for a_link in links if a_link not in downloaded_links]
+        # remaining_links = links
         next_subdirectory = get_local_path_from_full_url(link, subdirectory, hostname=root_hostname)
-        main(link, subdirectory=next_subdirectory, root_hostname=root_hostname, links=local_link_paths,
+        main(link, subdirectory=next_subdirectory, root_hostname=root_hostname, links=remaining_links,
              downloaded_links=downloaded_links)
 
 
