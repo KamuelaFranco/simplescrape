@@ -61,7 +61,7 @@ def get_local_path_from_full_url(url, local_directory, hostname, urlparse=urllib
 def get_full_url_from_relative_path(relative_path, hostname, urlparse=urllib.parse.urlparse):
     url = urlparse(relative_path)
     if not url.hostname:
-        full_url = f"http://{hostname}/{url.path}"
+        full_url = f"http://{hostname}/{url.path.strip('/')}"
         return full_url
     if not url.scheme:
         full_url = f"http:{relative_path}"
