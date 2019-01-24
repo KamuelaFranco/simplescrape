@@ -116,6 +116,12 @@ def main(url, subdirectory="site/", root_hostname="", links=[], downloaded_links
             f.write(html)
             f.close()
         downloaded_links.append(url)
+    else:
+        os.makedirs(os.path.dirname(subdirectory), exist_ok=True)
+        with open(f"{subdirectory}{parsed_url.path}", "w") as f:
+            f.write(html)
+            f.close()
+        downloaded_links.append(url)
     asset_paths = list(set(map(
         lambda path: get_full_url_from_relative_path(path, root_hostname),
         get_asset_paths(html))))
