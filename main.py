@@ -95,21 +95,21 @@ def get_asset_paths(html):
     return assets
 
 
-def main(url, links=[], urlparse=urllib.parse.urlparse):
+def main(url, subdirectory="site/", links=[], downloaded_links=[], urlparse=urllib.parse.urlparse):
     print(f"Downloading {url}")
     parsed_url = urlparse(url)
     root_hostname = parsed_url.hostname
     html = get_html(url)
     if not parsed_url.path.endswith(".html"):
-        os.makedirs(os.path.dirname("site/"), exist_ok=True)
-        with open("site/index.html", "w") as f:
+        os.makedirs(os.path.dirname(subdirectory), exist_ok=True)
+        with open(f"{subdirectory}index.html", "w") as f:
             f.write(html)
             f.close()
     asset_paths = list(set(map(
         lambda path: get_full_url_from_relative_path(path, root_hostname),
         get_asset_paths(html))))
     for asset_path in asset_paths:
-        local_path = get_local_path_from_full_url(asset_path, "site/", hostname=root_hostname)
+        local_path = get_local_path_from_full_url(asset_path, subdirectory, hostname=root_hostname)
         try:
             download_new_file(asset_path, local_path)
         except urllib.error.URLError:
