@@ -82,9 +82,14 @@ def get_html(url, urlopen=urllib.request.urlopen):
     return str(urlopen(url).read().decode("utf-8"))
 
 
-def get_path_links(html):
-    all_links = html_parser("a", html)
-    return all_links
+def get_path_links(html, hostname, urlparse=urllib.parse.urlparse):
+    all_raw_links = html_parser("a", html)
+    all_links = list(set(map(lambda link: get_full_url_from_relative_path(link, hostname), all_raw_links)))
+    local_links = []
+    for link in all_links:
+        if urlparse(link).hostname == hostname:
+            local_links.append(link)
+    return local_links
 
 
 def get_asset_paths(html):
@@ -95,16 +100,18 @@ def get_asset_paths(html):
     return assets
 
 
-def main(url, subdirectory="site/", links=[], downloaded_links=[], urlparse=urllib.parse.urlparse):
-    print(f"Downloading {url}")
+def main(url, subdirectory="site/", root_hostname="", links=[], downloaded_links=[], urlparse=urllib.parse.urlparse):
+    print(f"Crawling {url}")
     parsed_url = urlparse(url)
-    root_hostname = parsed_url.hostname
+    if not root_hostname:
+        root_hostname = parsed_url.hostname
     html = get_html(url)
     if not parsed_url.path.endswith(".html"):
         os.makedirs(os.path.dirname(subdirectory), exist_ok=True)
         with open(f"{subdirectory}index.html", "w") as f:
             f.write(html)
             f.close()
+        downloaded_links.append(url)
     asset_paths = list(set(map(
         lambda path: get_full_url_from_relative_path(path, root_hostname),
         get_asset_paths(html))))
@@ -113,15 +120,16 @@ def main(url, subdirectory="site/", links=[], downloaded_links=[], urlparse=urll
         try:
             download_new_file(asset_path, local_path)
         except urllib.error.URLError:
-            print("Failed")
-            print(asset_path, local_path)
+            print("Connection attempt failed while trying to download:")
+            print(f"\t{asset_path} TO {local_path}")
         except:
-            print("Failed")
-            print(asset_path, local_path)
-    link_paths = list(set(map(
-        lambda path: get_full_url_from_relative_path(path, root_hostname),
-        get_path_links(html))))
-    print(link_paths)
+            print("An unknown failure occurred while trying to download:")
+            print(f"\t{asset_path} TO {local_path}")
+    local_link_paths = get_path_links(html, root_hostname)
+    for link in local_link_paths:
+        next_subdirectory = get_local_path_from_full_url(link, subdirectory, hostname=root_hostname)
+        main(link, subdirectory=next_subdirectory, root_hostname=root_hostname, links=local_link_paths,
+             downloaded_links=downloaded_links)
 
 
 if __name__ == "__main__":
