@@ -108,6 +108,8 @@ def main(url, subdirectory="site/", root_hostname="", links=[], downloaded_links
     if not root_hostname:
         root_hostname = parsed_url.hostname
     html = get_html(url)
+    if not subdirectory.endswith("/"):
+        subdirectory += "/"
     if not parsed_url.path.endswith(".html"):
         os.makedirs(os.path.dirname(subdirectory), exist_ok=True)
         with open(f"{subdirectory}index.html", "w") as f:
